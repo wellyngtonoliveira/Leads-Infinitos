@@ -1,6 +1,6 @@
-const express = require("express");
-const axios = require("axios");
-const dotenv = require("dotenv");
+import express from "express";
+import axios from "axios";
+import dotenv from "dotenv";
 
 dotenv.config();
 
@@ -10,7 +10,12 @@ app.use(express.json());
 const PORT = process.env.PORT || 3000;
 const VERIFY_TOKEN = process.env.VERIFY_TOKEN || "dev-verify-token";
 
-// ✅ Rota simples para verificar se o servidor está rodando
+// ✅ Rota raiz
+app.get("/", (req, res) => {
+  res.send("🚀 Leads Infinitos está rodando com sucesso!");
+});
+
+// ✅ Rota de saúde
 app.get("/health", (_req, res) => {
   res.json({ status: "ok" });
 });
@@ -35,14 +40,13 @@ app.post("/webhook", async (req, res) => {
 
     if (!message) return res.sendStatus(200);
 
-    const from = message.from;        // número do usuário
-    const text = message.text?.body || ""; // texto enviado
+    const from = message.from;
+    const text = message.text?.body || "";
 
     console.log("📩 Mensagem recebida:", from, "-", text);
 
     let reply;
 
-    // 🔍 Se a mensagem contiver "pizzaria", busca no Google Maps
     if (text.toLowerCase().includes("pizzaria")) {
       if (!process.env.GOOGLE_API_KEY) {
         reply = "Google API Key não configurada no .env";
@@ -64,11 +68,9 @@ app.post("/webhook", async (req, res) => {
         }
       }
     } else {
-      // Caso contrário, apenas repete o que o usuário falou
       reply = `Você disse: ${text}`;
     }
 
-    // ✅ Enviar resposta pelo WhatsApp
     if (process.env.WHATSAPP_TOKEN && process.env.WHATSAPP_PHONE_ID) {
       await axios.post(
         `https://graph.facebook.com/v20.0/${process.env.WHATSAPP_PHONE_ID}/messages`,
